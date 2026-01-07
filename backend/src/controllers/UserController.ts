@@ -38,9 +38,9 @@ export const login =async (req: Request, res: Response)=>{
         if(!user){
             return res.status(404).json({message:"User not found"})
         }
-        const isMatch = await await user.comparePassword(password)
+        const isMatch = await user.comparePassword(password)
         if(!isMatch){
-            return res.status(400).json({message:"Password InCorrect"})
+            return res.status(401).json({message:"Password InCorrect"})
         }
         const token = jwt.sign({id: user._id, role: user.role}, process.env.JWT_SECRET as string, {expiresIn: "1d"});
         return res.status(200).json({message: "successfully login",
@@ -59,3 +59,15 @@ export const login =async (req: Request, res: Response)=>{
         res.status(500).json({ message: "Server error" });
     }
 }
+
+export const getUserDetails = async (req:Request , res:Response) =>{
+    try {
+        const user = await UserModel.findById((req as any).user._id).select("-password");
+        if(!user){
+            return res.status(404).send("User Not Found")
+        }
+        return res.status(200).json({message: "User fetch successfully", user})
+    } catch (error) {
+        return res.status(500).send("Server Error: User fetch failed")
+    }
+} 
