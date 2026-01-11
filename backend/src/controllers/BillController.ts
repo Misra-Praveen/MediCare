@@ -95,3 +95,123 @@ export const createBill = async( req:Request, res: Response )=>{
     }
 }
 
+export const getAllBills = async(req: Request, res: Response)=>{
+    try {
+        const { page = 1, limit = 10 }= req.query;
+        const limitNumber = Number(limit);
+        const currentPage = Number(page);
+        const skip = (currentPage - 1) * limitNumber;
+        
+
+        const bills = await BillModule.find().skip(skip).limit(limitNumber).sort({createdAt : -1})
+        if(bills.length === 0){
+            return res.status(404).json({message: "No bills found"})
+        }
+        const totalBills = await BillModule.countDocuments();
+        const totalPage = Math.ceil(totalBills/limitNumber)
+        return res.status(200).json({message : "Bills fetch successfully", currentPage, totalPage, totalBills, bills})
+
+    } catch (error) {
+        console.error("Get bills error:", error);
+        return res.status(500).json({message : "Bills fetch failed"})
+
+    }
+}
+
+export const getBillsByDateRange = async(req: Request, res: Response)=>{
+    try {
+        const { fromDate, toDate, page = 1, limit = 10 }= req.query;
+        if (!fromDate) {
+            return res.status(400).json({ message: "fromDate is required" });
+        }
+        const limitNumber = Number(limit);
+        const currentPage = Number(page);
+        const skip = (currentPage - 1) * limitNumber;
+
+        const from_Date =new  Date(fromDate as string)
+        const to_Date = toDate ? new Date(toDate as string) : new Date();
+        if (isNaN(from_Date.getTime()) || isNaN(to_Date.getTime())) {
+            return res.status(400).json({ message: "Invalid date format" });
+        }
+        to_Date.setHours(23, 59, 59, 999)
+        const dateFilter = {
+            createdAt:{
+                $gte: from_Date,
+                $lte: to_Date
+            }
+        }
+
+        const bills = await BillModule.find(dateFilter).skip(skip).limit(limitNumber).sort({createdAt : -1})
+        if(bills.length === 0){
+            return res.status(404).json({message: "No bills found"})
+        }
+        const totalBills = await BillModule.countDocuments(dateFilter);
+        const totalPage = Math.ceil(totalBills/limitNumber)
+        return res.status(200).json({message : "Bills fetch successfully", currentPage, totalPage, totalBills, bills})
+
+    } catch (error) {
+        console.error("Get bills by date error:", error);
+        return res.status(500).json({message : "Bills fetch failed"})
+
+    }
+}
+
+
+export const getDailySalesReport = async (req: Request, res: Response)=>{
+    try {
+        const { date }= req.query;
+        
+        const baseDate = date ? new Date(date as string) : new Date()
+        if(isNaN(baseDate.getTime())) return res.status(400).json({ message: "Invalid date format" });
+        const dayStart = new Date(baseDate)
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(baseDate)
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const dateFilter = {
+            createdAt:{
+                $gte: dayStart,
+                $lte: dayEnd
+            }
+        }
+        const bills = await BillModule.find(dateFilter)
+        if(bills.length===0) return res.status(400).json({message: "Bill not found"});
+
+        let totalRevenue = 0;
+        let totalItemsSold = 0;
+        for(let bill of bills){
+            totalRevenue += bill.totalAmount || 0;
+            for(let item of bill.items){
+                totalItemsSold += item.quantity
+            }
+        }
+        return res.status(200).json({message: "Daily sales report generated successfully", date: dayStart.toISOString().split("T")[0], totalBills: bills.length, totalItemsSold, totalRevenue})
+
+    } catch (error) {
+        console.log("Error Occour: ", error)
+        return res.status(500).json({message : "Error generating daily sales report"})
+    }
+}
+
+export const getBillByBillNumber = async(req: Request, res: Response)=>{
+    try {
+        const { billNumber } = req.params;
+        if(!billNumber){
+            return res.status(400).json({message: "Bill Number is required"})
+        }
+        const bill = await BillModule.findOne({billNumber})
+            .populate("billedBy", "username email role")
+            .populate("items.medicineId", "name brand price");
+        if(!bill){
+            return res.status(400).json({message : "Invalid Bill Number"})
+        }
+        
+        return res.status(200).json({
+            message: "Bill Fetch Successfully",
+            billNumber, bill
+        })
+    } catch (error) {
+        console.log("Error Occour: ", error)
+        return res.status(500).json({message : "Error generating report"})
+    }
+}
