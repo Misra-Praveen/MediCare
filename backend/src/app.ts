@@ -5,6 +5,7 @@ import medicineRouter from "./routes/medicineRoute";
 import categoryRouter from "./routes/categoryRoute";
 import billRouter from "./routes/billRoute";
 import returnRouter from "./routes/returnRoute";
+import reportRouter from "./routes/reportRoute";
 
 
 const app = express();
@@ -17,6 +18,7 @@ app.use("/api", medicineRouter)
 app.use("/api", categoryRouter)
 app.use("/api", billRouter)
 app.use("/api", returnRouter)
+app.use("/api/reports", reportRouter)
 
 app.get("/", (req, res)=>{
     res.status(200).send("MediCare+ Backend Running")
