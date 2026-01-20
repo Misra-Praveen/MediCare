@@ -16,7 +16,7 @@ export const getDashboardSummary = async (req: Request, res: Response)=>{
             MedicineModel.countDocuments({stock: {$lte : 10}, isActive: true}),
             BillModule.aggregate([
                 { $match: { createdAt: {$gte : todayStart, $lte: todayEnd } } },
-                { $group: { _id: null, revenue: { $sum: "totalAmount"}, bills: { $sum: 1 } } }
+                { $group: { _id: null, revenue: { $sum: "$totalAmount"}, bills: { $sum: 1 } } }
             ]),
             ReturnModel.aggregate([
                 { $match: { createdAt: { $gte: todayStart, $lte: todayEnd } } },
