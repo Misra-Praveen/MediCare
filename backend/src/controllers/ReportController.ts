@@ -171,3 +171,13 @@ export const getExpiryReport = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Failed to fetch expiry report" });
   }
 };
+
+export const getRecentBills = async(req: Request, res: Response)=>{
+  try {
+    const recentBills = await BillModule.find().sort({createdAt: -1}).limit(5).select("billNumber customerName totalAmount paymentMode createdAt");
+    return res.status(200).json({message: "Recent 5 bills fetched successfully", recentBills})
+  } catch (error) {
+    console.error("Recent bill error:", error);
+    return res.status(500).json({ message: "Failed to fetch recent bills" });
+  }
+}
