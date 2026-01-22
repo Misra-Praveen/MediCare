@@ -6,6 +6,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import axiosApi from "@/lib/axios";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
 
 interface User {
   username: string;
@@ -26,12 +28,18 @@ interface RecentBills {
   totalAmount: number;
   createdAt: string;
 }
+interface SalesChartData {
+  label: string;
+  totalRevenue: number;
+  totalBills: number;
+}
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null,
   );
+  const [salesChartReport, setSalesChartReport] = useState<SalesChartData[]>([])
   const [recentBills, setRecentBills] = useState<RecentBills[] | []>([]);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -52,13 +60,34 @@ const Dashboard = () => {
     try {
       const response = await axiosApi.get("/reports/dashboard/recent-bills");
       const data = response.data.recentBills;
-      console.log(data);
+      // console.log(data);
       setRecentBills(data);
     } catch (error: any) {
       console.log(error);
       setError(error);
     }
   };
+  const getTodaySaleReports = async ()=>{
+    try {
+      const fromDate = new Date("2026-01-09")
+      // console.log(fromDate)
+      const response = await axiosApi.get("/reports/sales", {params : {fromDate}})
+      // console.log(response.data)
+      const data = response.data
+      const chartData = [
+        {
+          label: "Today",
+          totalRevenue: data.totalRevenue,
+          totalBills: data.totalBills,
+        }
+      ]
+      console.log(chartData)
+      setSalesChartReport(chartData)
+    } catch (error: any) {
+      console.log(error);
+      setError(error);
+    }
+  }
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
@@ -71,6 +100,7 @@ const Dashboard = () => {
     setUser(JSON.parse(storedUser));
     getAllDetailsForDashboard();
     getRecentBills();
+    getTodaySaleReports()
   }, [router]);
 
   const handleLogout = () => {
@@ -139,6 +169,41 @@ const Dashboard = () => {
             />
           </div>
         )}
+
+        <section className="mt-8 w-full">
+          <article className="bg-white rounded-2xl shadow-md border p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">Sales Analytics</h2>
+              <p className="text-sm text-gray-500">Today’s revenue & billing overview</p>
+            </div>
+            <div className="flex gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-orange-500"></span>
+                <span className="text-gray-600">Revenue</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-green-600"></span>
+                <span className="text-gray-600">Bills</span>
+              </div>
+            </div>
+          </div>
+          <div className="w-full h-72 sm:h-80 md:h-95 lg:h-105">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={salesChartReport}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="label" tick={{ fontSize: 12 }} stroke="#6b7280" />
+              <YAxis tick={{ fontSize: 12 }} stroke="#6b7280" />
+              <Tooltip contentStyle={{ backgroundColor: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "12px" }} labelStyle={{ fontWeight: "bold", color: "#111827" }}/>
+              <Line type="monotone" dataKey="totalRevenue" stroke="#ff7300" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 7 }} name="Revenue" />
+              <Line type="monotone" dataKey="totalBills" stroke="#387908" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 7 }} name="Bills" />
+            </LineChart>
+          
+          </ResponsiveContainer>
+           </div>  
+      
+          </article>
+        </section>
 
         <section className="mt-8 bg-white rounded-xl shadow-sm  border-l-4 border-amber-300 overflow-hidden">
           <div className="p-4 border-b">
