@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import SideBar from "./SideBar";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-regular-svg-icons";
@@ -69,7 +68,7 @@ const Dashboard = () => {
   };
   const getTodaySaleReports = async ()=>{
     try {
-      const fromDate = new Date("2026-01-09")
+      const fromDate = new Date()  // "2026-01-09"
       // console.log(fromDate)
       const response = await axiosApi.get("/reports/sales", {params : {fromDate}})
       // console.log(response.data)
@@ -113,9 +112,8 @@ const Dashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-100">
-      <SideBar />
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 pt-3 pb-6 px-6">
         {/* Top Header */}
         <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
           <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
@@ -188,7 +186,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          <div className="w-full h-72 sm:h-80 md:h-95 lg:h-105">
+          <div className="w-full h-52 sm:h-58 md:h-64 lg:h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={salesChartReport}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
