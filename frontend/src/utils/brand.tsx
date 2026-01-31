@@ -1,0 +1,17 @@
+export const medicineBrands: string[] = [
+  "Cipla",
+  "Sun Pharma",
+  "Dr. Reddy's",
+  "Lupin",
+  "Zydus",
+  "Abbott",
+  "Pfizer",
+  "GSK",
+  "Alkem",
+  "Torrent Pharma",
+  "Mankind",
+  "Intas",
+  "Aristo",
+  "Micro Labs",
+  "Ajanta Pharma",
+];
