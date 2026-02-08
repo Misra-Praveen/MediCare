@@ -68,7 +68,7 @@ const Dashboard = () => {
   };
   const getTodaySaleReports = async ()=>{
     try {
-      const fromDate = new Date()  // "2026-01-09"
+      const fromDate = new Date().toISOString().split("T")[0]  // "2026-01-09"
       // console.log(fromDate)
       const response = await axiosApi.get("/reports/sales", {params : {fromDate}})
       // console.log(response.data)
