@@ -10,7 +10,8 @@ export const generateBillNumber = async()=>{
 
     let nextSequence = 1;
     if(lastBillNo){
-        let lastNo = lastBillNo.billNumber.slice(6);
+        const parts = lastBillNo.billNumber.split("-");
+        const lastNo = Number(parts[2]);
         nextSequence= (Number(lastNo) +1)
     }
     const paddedSequence = String(nextSequence).padStart(6, "0")
